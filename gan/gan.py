@@ -1,5 +1,3 @@
-from __future__ import print_function, division
-
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
@@ -14,7 +12,8 @@ import sys
 
 import numpy as np
 
-class GAN():
+
+class GAN:
     def __init__(self):
         self.img_rows = 28
         self.img_cols = 28
@@ -26,9 +25,9 @@ class GAN():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss='binary_crossentropy',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+        self.discriminator.compile(
+            loss="binary_crossentropy", optimizer=optimizer, metrics=["accuracy"]
+        )
 
         # Build the generator
         self.generator = self.build_generator()
@@ -46,8 +45,7 @@ class GAN():
         # The combined model  (stacked generator and discriminator)
         # Trains the generator to fool the discriminator
         self.combined = Model(z, validity)
-        self.combined.compile(loss='binary_crossentropy', optimizer=optimizer)
-
+        self.combined.compile(loss="binary_crossentropy", optimizer=optimizer)
 
     def build_generator(self):
 
@@ -62,7 +60,7 @@ class GAN():
         model.add(Dense(1024))
         model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(np.prod(self.img_shape), activation='tanh'))
+        model.add(Dense(np.prod(self.img_shape), activation="tanh"))
         model.add(Reshape(self.img_shape))
 
         model.summary()
@@ -81,7 +79,7 @@ class GAN():
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dense(256))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(1, activation='sigmoid'))
+        model.add(Dense(1, activation="sigmoid"))
         model.summary()
 
         img = Input(shape=self.img_shape)
@@ -95,7 +93,7 @@ class GAN():
         (X_train, _), (_, _) = mnist.load_data()
 
         # Rescale -1 to 1
-        X_train = X_train / 127.5 - 1.
+        X_train = X_train / 127.5 - 1.0
         X_train = np.expand_dims(X_train, axis=3)
 
         # Adversarial ground truths
@@ -128,7 +126,10 @@ class GAN():
             g_loss = self.combined.train_on_batch(noise, valid)
 
             # Plot the progress
-            print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss))
+            print(
+                "%d [D loss: %f, acc.: %.2f%%] [G loss: %f]"
+                % (epoch, d_loss[0], 100 * d_loss[1], g_loss)
+            )
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -146,13 +147,13 @@ class GAN():
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap="gray")
+                axs[i, j].axis("off")
                 cnt += 1
         fig.savefig("images/%d.png" % epoch)
         plt.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     gan = GAN()
     gan.train(epochs=30000, batch_size=32, sample_interval=200)

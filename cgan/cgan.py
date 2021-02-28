@@ -1,5 +1,3 @@
-from __future__ import print_function, division
-
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply
 from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
@@ -12,7 +10,8 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-class CGAN():
+
+class CGAN:
     def __init__(self):
         # Input shape
         self.img_rows = 28
@@ -26,9 +25,9 @@ class CGAN():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer,
-            metrics=['accuracy'])
+        self.discriminator.compile(
+            loss=["binary_crossentropy"], optimizer=optimizer, metrics=["accuracy"]
+        )
 
         # Build the generator
         self.generator = self.build_generator()
@@ -49,8 +48,7 @@ class CGAN():
         # The combined model  (stacked generator and discriminator)
         # Trains generator to fool discriminator
         self.combined = Model([noise, label], valid)
-        self.combined.compile(loss=['binary_crossentropy'],
-            optimizer=optimizer)
+        self.combined.compile(loss=["binary_crossentropy"], optimizer=optimizer)
 
     def build_generator(self):
 
@@ -65,13 +63,13 @@ class CGAN():
         model.add(Dense(1024))
         model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(np.prod(self.img_shape), activation='tanh'))
+        model.add(Dense(np.prod(self.img_shape), activation="tanh"))
         model.add(Reshape(self.img_shape))
 
         model.summary()
 
         noise = Input(shape=(self.latent_dim,))
-        label = Input(shape=(1,), dtype='int32')
+        label = Input(shape=(1,), dtype="int32")
         label_embedding = Flatten()(Embedding(self.num_classes, self.latent_dim)(label))
 
         model_input = multiply([noise, label_embedding])
@@ -91,13 +89,15 @@ class CGAN():
         model.add(Dense(512))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.4))
-        model.add(Dense(1, activation='sigmoid'))
+        model.add(Dense(1, activation="sigmoid"))
         model.summary()
 
         img = Input(shape=self.img_shape)
-        label = Input(shape=(1,), dtype='int32')
+        label = Input(shape=(1,), dtype="int32")
 
-        label_embedding = Flatten()(Embedding(self.num_classes, np.prod(self.img_shape))(label))
+        label_embedding = Flatten()(
+            Embedding(self.num_classes, np.prod(self.img_shape))(label)
+        )
         flat_img = Flatten()(img)
 
         model_input = multiply([flat_img, label_embedding])
@@ -148,7 +148,10 @@ class CGAN():
             g_loss = self.combined.train_on_batch([noise, sampled_labels], valid)
 
             # Plot the progress
-            print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss))
+            print(
+                "%d [D loss: %f, acc.: %.2f%%] [G loss: %f]"
+                % (epoch, d_loss[0], 100 * d_loss[1], g_loss)
+            )
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -168,14 +171,14 @@ class CGAN():
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt,:,:,0], cmap='gray')
-                axs[i,j].set_title("Digit: %d" % sampled_labels[cnt])
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap="gray")
+                axs[i, j].set_title("Digit: %d" % sampled_labels[cnt])
+                axs[i, j].axis("off")
                 cnt += 1
         fig.savefig("images/%d.png" % epoch)
         plt.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cgan = CGAN()
     cgan.train(epochs=20000, batch_size=32, sample_interval=200)

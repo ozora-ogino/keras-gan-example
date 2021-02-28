@@ -1,5 +1,3 @@
-from __future__ import print_function, division
-
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
@@ -14,7 +12,8 @@ import sys
 
 import numpy as np
 
-class DCGAN():
+
+class DCGAN:
     def __init__(self):
         # Input shape
         self.img_rows = 28
@@ -27,9 +26,9 @@ class DCGAN():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss='binary_crossentropy',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+        self.discriminator.compile(
+            loss="binary_crossentropy", optimizer=optimizer, metrics=["accuracy"]
+        )
 
         # Build the generator
         self.generator = self.build_generator()
@@ -47,7 +46,7 @@ class DCGAN():
         # The combined model  (stacked generator and discriminator)
         # Trains the generator to fool the discriminator
         self.combined = Model(z, valid)
-        self.combined.compile(loss='binary_crossentropy', optimizer=optimizer)
+        self.combined.compile(loss="binary_crossentropy", optimizer=optimizer)
 
     def build_generator(self):
 
@@ -77,11 +76,15 @@ class DCGAN():
 
         model = Sequential()
 
-        model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"))
+        model.add(
+            Conv2D(
+                32, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"
+            )
+        )
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
         model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
-        model.add(ZeroPadding2D(padding=((0,1),(0,1))))
+        model.add(ZeroPadding2D(padding=((0, 1), (0, 1))))
         model.add(BatchNormalization(momentum=0.8))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
@@ -94,7 +97,7 @@ class DCGAN():
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.25))
         model.add(Flatten())
-        model.add(Dense(1, activation='sigmoid'))
+        model.add(Dense(1, activation="sigmoid"))
 
         model.summary()
 
@@ -109,7 +112,7 @@ class DCGAN():
         (X_train, _), (_, _) = mnist.load_data()
 
         # Rescale -1 to 1
-        X_train = X_train / 127.5 - 1.
+        X_train = X_train / 127.5 - 1.0
         X_train = np.expand_dims(X_train, axis=3)
 
         # Adversarial ground truths
@@ -139,7 +142,10 @@ class DCGAN():
             g_loss = self.combined.train_on_batch(noise, valid)
 
             # Plot the progress
-            print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100*d_loss[1], g_loss))
+            print(
+                "%d [D loss: %f, acc.: %.2f%%] [G loss: %f]"
+                % (epoch, d_loss[0], 100 * d_loss[1], g_loss)
+            )
 
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
@@ -157,13 +163,13 @@ class DCGAN():
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap="gray")
+                axs[i, j].axis("off")
                 cnt += 1
         fig.savefig("images/mnist_%d.png" % epoch)
         plt.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dcgan = DCGAN()
     dcgan.train(epochs=4000, batch_size=32, save_interval=50)
